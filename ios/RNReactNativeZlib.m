@@ -1,8 +1,11 @@
 
 #import "RNReactNativeZlib.h"
-#include "compression.h"
+#import "ZLibSupport.h"
+
+
 
 @implementation RNReactNativeZlib
+
 
 - (dispatch_queue_t)methodQueue
 {
@@ -13,39 +16,31 @@ RCT_EXPORT_MODULE()
 RCT_EXPORT_METHOD(inflate: (NSArray *) data
                   resolver: (RCTPromiseResolveBlock) resolve
                   rejecter: (RCTPromiseRejectBlock) reject) {
-
-
+    
+    
     unsigned long dataSize = data.count;
-
+    
     uint8_t *srcBuffer = (uint8_t*)malloc(dataSize);
-    for (unsigned long i = 2; i < dataSize; i++) {
-        srcBuffer[i-2] = (uint8_t) [[data objectAtIndex:i] longValue];
+    for (unsigned long i = 0; i < dataSize; i++) {
+        srcBuffer[i] = (uint8_t) [[data objectAtIndex:i] longValue];
     }
     @try {
-
-        for (int att = 1; att < 6; att++) {
-            size_t dstSize = dataSize << att;
-            size_t outSize;
-            uint8_t *dstBuffer = (uint8_t*)malloc(dstSize);
-            outSize = compression_decode_buffer(dstBuffer, dstSize, srcBuffer, dataSize-6, nil, COMPRESSION_ZLIB);
-            if (outSize == dstSize) {
-                free(dstBuffer);
-                continue;
-            }
-
-            free(srcBuffer);
-            NSMutableArray* result = [[NSMutableArray alloc] init];
-            for (unsigned long i = 0; i < outSize; i++) {
-                [result addObject:[[NSNumber alloc] initWithLong:(long) dstBuffer[i]]];
-            }
-            free(dstBuffer);
-            resolve(result);
-            break;
+        int outLen = 0;
+        uint8_t *dstBuffer = [ZLibSupport decompressData:srcBuffer withLength:dataSize outputLen:&outLen];
+        free(srcBuffer);
+        srcBuffer = nil;
+        
+        NSMutableArray* result = [[NSMutableArray alloc] init];
+        for (int i = 0; i < outLen; i++) {
+            [result addObject:[[NSNumber alloc] initWithLong:(long) dstBuffer[i]]];
         }
-
-
+        free(dstBuffer);
+        resolve(result);
     }
     @catch (NSException * ex) {
+        if (srcBuffer) {
+            free (srcBuffer);
+        }
         NSMutableDictionary * info = [NSMutableDictionary dictionary];
         [info setValue:ex.name forKey:@"ExceptionName"];
         [info setValue:ex.reason forKey:@"ExceptionReason"];
@@ -54,9 +49,52 @@ RCT_EXPORT_METHOD(inflate: (NSArray *) data
         [info setValue:ex.userInfo forKey:@"ExceptionUserInfo"];
 
         NSError *error = [[NSError alloc] initWithDomain:@"RNReactNativeZlib" code:-1 userInfo:info];
-        reject(@"Error", @"And error occurred while retrieving current time", error);
+        reject(@"Error", @"And error occurred while inflating data", error);
     }
 
 }
-@end
 
+RCT_EXPORT_METHOD(deflate: (NSArray *) data
+                  resolver: (RCTPromiseResolveBlock) resolve
+                  rejecter: (RCTPromiseRejectBlock) reject) {
+    
+    
+    unsigned long dataSize = data.count;
+    
+    uint8_t *srcBuffer = (uint8_t*)malloc(dataSize);
+    for (unsigned long i = 0; i < dataSize; i++) {
+        srcBuffer[i] = (uint8_t) [[data objectAtIndex:i] longValue];
+    }
+    @try {
+        int outLen = 0;
+        uint8_t *dstBuffer = [ZLibSupport compressData:srcBuffer withLength:dataSize outputLen:&outLen];
+        free(srcBuffer);
+        srcBuffer = nil;
+        
+        NSMutableArray* result = [[NSMutableArray alloc] init];
+        for (int i = 0; i < outLen; i++) {
+            [result addObject:[[NSNumber alloc] initWithLong:(long) dstBuffer[i]]];
+        }
+        free(dstBuffer);
+        resolve(result);
+    }
+    @catch (NSException * ex) {
+        if (srcBuffer) {
+            free (srcBuffer);
+        }
+        NSMutableDictionary * info = [NSMutableDictionary dictionary];
+        [info setValue:ex.name forKey:@"ExceptionName"];
+        [info setValue:ex.reason forKey:@"ExceptionReason"];
+        [info setValue:ex.callStackReturnAddresses forKey:@"ExceptionCallStackReturnAddresses"];
+        [info setValue:ex.callStackSymbols forKey:@"ExceptionCallStackSymbols"];
+        [info setValue:ex.userInfo forKey:@"ExceptionUserInfo"];
+
+        NSError *error = [[NSError alloc] initWithDomain:@"RNReactNativeZlib" code:-1 userInfo:info];
+        reject(@"Error", @"And error occurred deflating data", error);
+    }
+
+}
+
+
+@end
+  
