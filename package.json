@@ -1,6 +1,6 @@
 
 {
-  "name": "@darthzorg/react-native-zlib",
+  "name": "@klarna/react-native-zlib",
   "version": "1.0.0",
   "description": "Allow to use native implementation of compression algorithms. Inflate/Deflate/Gzip.",
   "main": "js/index.js",
@@ -31,15 +31,15 @@
     "compression",
     "android"
   ],
-  "author": "Mauro Minoro",
+  "author": "Oleksandr Kucherenko",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/DarthZorG/react-native-zlib.git"
+    "url": "https://github.com/klarna/react-native-zlib.git"
   },
-  "homepage": "https://github.com/DarthZorG/react-native-zlib",
+  "homepage": "https://github.com/klarna/react-native-zlib",
   "bugs": {
-    "url": "https://github.com/DarthZorG/react-native-zlib/issues"
+    "url": "https://github.com/klarna/react-native-zlib/issues"
   },
   "devDependencies": {
 
