@@ -18,7 +18,7 @@
     [ZLibSupport checkZLibHeader:data withLength:datalen];
     UInt32 checksum = [ZLibSupport getAdlerChecksum:data withLength:datalen];
 
-    for (int att = 1; att < 6; att++) {
+    for (int att = 1; att < 10; att++) {
         size_t dstSize = datalen << att;
         size_t outSize;
         uint8_t *dstBuffer = (uint8_t*)malloc(dstSize);
