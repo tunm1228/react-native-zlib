@@ -1,7 +1,7 @@
 
 package com.klarna.reactnative.zlib;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import android.util.Base64;
 
 import com.facebook.react.bridge.Arguments;
